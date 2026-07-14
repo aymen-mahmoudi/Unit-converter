@@ -7,7 +7,7 @@ A simple interactive web-based tool for converting between various units of meas
 Open the Converter tool by following this link: [https://aymen-mahmoudi.github.io/Unit-converter/](https://aymen-mahmoudi.github.io/Unit-converter/) or run the index file locally.
 
 <img src="screenshot_converter.jpg"
-     alt="Unit Converter GUI" width="300" height="400"
+     alt="Unit Converter GUI" width="600" 
       style="float: center"/>
 
 ## Features
