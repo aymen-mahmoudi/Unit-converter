@@ -1,466 +1,446 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Added meta description for completeness -->
-    <meta name="description" content="Unit Converter Application">
-    <title>Unit Converter</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Fixed CSS file name from styles.css to style.css -->
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Unit Converter — all units at once">
+<title>Unit Converter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#eef1f4;
+    --panel:#ffffff;
+    --ink:#16202a;
+    --muted:#6b7785;
+    --accent:#0f8b8d;
+    --accent-soft:#e3f4f3;
+    --accent-ink:#0b5f60;
+    --border:#dbe1e7;
+    --error:#c24545;
+    --error-soft:#fbe9e9;
+    --radius:10px;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    min-height:100vh;
+    background-color:var(--bg);
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size:28px 28px;
+    background-position:-1px -1px;
+    color:var(--ink);
+    font-family:'Inter', system-ui, sans-serif;
+  }
+
+  .wrap{
+    max-width:920px;
+    margin:0 auto;
+    padding:40px 20px 80px;
+  }
+
+  header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+  }
+
+  h1{
+    font-size:1.5rem;
+    font-weight:700;
+    letter-spacing:-0.01em;
+    margin:0;
+  }
+
+  h1 .dot{
+    color:var(--accent);
+  }
+
+  .subtitle{
+    color:var(--muted);
+    font-size:0.85rem;
+    margin:2px 0 0;
+  }
+
+  .hint{
+    font-size:0.78rem;
+    color:var(--muted);
+  }
+
+  /* Category selector — segmented tab row */
+  .categories{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:6px;
+    margin-bottom:24px;
+  }
+
+  .cat-btn{
+    appearance:none;
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    font-family:inherit;
+    font-size:0.82rem;
+    font-weight:600;
+    letter-spacing:0.01em;
+    padding:8px 14px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease;
+    white-space:nowrap;
+  }
+
+  .cat-btn:hover{
+    color:var(--ink);
+    background:var(--accent-soft);
+  }
+
+  .cat-btn.active{
+    background:var(--accent);
+    color:#fff;
+  }
+
+  /* Grid of unit displays */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));
+    gap:12px;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:14px 14px 12px;
+    position:relative;
+    transition:border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .card.focused{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+
+  .card.invalid{
+    border-color:var(--error);
+    box-shadow:0 0 0 3px var(--error-soft);
+  }
+
+  .unit-label{
+    font-size:0.72rem;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--muted);
+    margin-bottom:6px;
+    display:block;
+  }
+
+  .unit-input{
+    width:100%;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-family:'JetBrains Mono', monospace;
+    font-size:1.15rem;
+    font-weight:500;
+    color:var(--ink);
+    padding:0;
+  }
+
+  .unit-input.dash{
+    color:var(--muted);
+  }
+
+  footer{
+    margin-top:28px;
+    font-size:0.76rem;
+    color:var(--muted);
+    text-align:center;
+  }
+
+  @media (max-width:480px){
+    .grid{grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));}
+    h1{font-size:1.3rem;}
+  }
+</style>
 </head>
-<body style="background-color: var(--bg-gray)" class="flex items-center justify-center min-h-screen">
-    <!-- Replaced bg-gray-100 with var(--bg-gray) to avoid Tailwind conflict -->
-    <div class="converter-container bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h1 class="text-2xl font-bold text-center mb-4">Unit Converter</h1>
-        <div class="mb-4">
-            <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
-            <select id="category" class="mt-1 block w-full p-2 border rounded-md" onchange="updateUnits()">
-                <option value="energy" selected>Energy</option>
-                <option value="pressure">Pressure</option>
-                <option value="temperature">Temperature</option>
-                <option value="volume">Volume</option>
-                <option value="mass">Mass</option>
-                <option value="area">Area</option>
-                <option value="length">Length</option>
-                <option value="speed">Speed</option> <!-- Add this line -->
-            </select>
-        </div>
-        <div class="mb-4">
-            <label for="inputValue" class="block text-sm font-medium text-gray-700">Value</label>
-            <input type="text" id="inputValue" class="mt-1 block w-full p-2 border rounded-md" value="200" placeholder="Enter numerical value" pattern="[+-]?(?:\d*\.?\d+)(?:[eE][+-]?\d+)?$" autofocus>
-            <!-- Updated pattern to allow more flexible numerical inputs -->
-        </div>
-        <div class="mb-4">
-            <label for="fromUnit" class="block text-sm font-medium text-gray-700">From</label>
-            <select id="fromUnit" class="mt-1 block w-full p-2 border rounded-md"></select>
-        </div>
-        <div class="mb-4">
-            <label for="toUnit" class="block text-sm font-medium text-gray-700">To</label>
-            <select id="toUnit" class="mt-1 block w-full p-2 border rounded-md"></select>
-        </div>
-        <div class="mb-4">
-            <label for="result" class="block text-sm font-medium text-gray-700">Result</label>
-            <input type="text" id="result" class="mt-1 block w-full p-2 border rounded-md bg-gray-100" readonly>
-        </div>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Unit Converter<span class="dot">.</span></h1>
+      <p class="subtitle">by aymen mahmoudi 2026</p>
     </div>
+    <p class="hint" id="unitCount"></p>
+  </header>
 
-    <script>
+  <div class="categories" id="categories"></div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+function energyToEV(val, unit) {
+  switch (unit) {
+    case 'eV': return val;
+    case 'meV': return val / 1000;
+    case 'nm': return 1239.84193 / val;
+    case 'cm⁻¹': return val / 8065.54429;
+    case 'kHz': return val * 4.135667696e-12;
+    case 'MHz': return val * 4.135667696e-9;
+    case 'GHz': return val * 4.135667696e-6;
+    case 'THz': return val * 0.004135667696;
+    case 'ps': return 4.135667696e-3 / val;
+    case 'ns': return 4.135667696e-6 / val;
+    case 'us': return 4.135667696e-9 / val;
+    case 'fs': return 4.135667696 / val;
+    case 'J': return val / 1.602176634e-19;
+    case 'cal': return val / 4.184;
+    case 'kWh': return val * 4.467037e-26;
+    case 'temp': return val * 8.617333262e-5;
+    default: return NaN;
+  }
+}
+function energyFromEV(val, unit) {
+  switch (unit) {
+    case 'eV': return val;
+    case 'meV': return val * 1000;
+    case 'nm': return 1239.84193 / val;
+    case 'cm⁻¹': return val * 8065.54429;
+    case 'kHz': return val / 4.135667696e-12;
+    case 'MHz': return val / 4.135667696e-9;
+    case 'GHz': return val / 4.135667696e-6;
+    case 'THz': return val / 0.004135667696;
+    case 'ps': return 4.135667696e-3 / val;
+    case 'ns': return 4.135667696e-6 / val;
+    case 'us': return 4.135667696e-9 / val;
+    case 'fs': return 4.135667696 / val;
+    case 'J': return val * 1.602176634e-19;
+    case 'cal': return val * 4.184;
+    case 'kWh': return val / 4.467037e-26;
+    case 'temp': return val / 8.617333262e-5;
+    default: return NaN;
+  }
+}
+function convertEnergy(val, from, to) {
+  if (from === to) return val;
+  if (val === 0 && ['nm', 'ps', 'ns', 'us', 'fs'].includes(from)) return NaN;
+  if (val === 0 && ['nm', 'ps', 'ns', 'us', 'fs'].includes(to)) return NaN;
+  const ev = energyToEV(val, from);
+  return energyFromEV(ev, to);
+}
         const conversionFactors = {
-            energy: {
-                units: ['eV', 'meV', 'nm', 'cm⁻¹', 'GHz', 'THz', 'ps', 'fs', 'J', 'cal', 'kWh', 'T'],
-                factors: {
-                    eV: (val, to) => {
-                        if (val === 0 && ['nm', 'cm⁻¹', 'ps', 'fs'].includes(to)) return NaN;
-                        if (to === 'meV') return val * 1000;
-                        if (to === 'nm') return 1239.84193 / val;
-                        if (to === 'cm⁻¹') return val * 8065.54429;
-                        if (to === 'GHz') return val / 4.135667696e-6;
-                        if (to === 'ps') return 4.135667696e-3 / val;
-                        if (to === 'fs') return 4.135667696 / val;
-                        if (to === 'J') return val * 1.602176634e-19;
-                        if (to === 'cal') return val * 3.826733e-20;
-                        if (to === 'kWh') return val * 4.467037e-26;
-                        if (to === 'THz') return val / 0.004135667696;
-                        if (to === 'T') return val / 8.617333262e-5;
-                        return val;
-                    },
-                    meV: (val, to) => {
-                        if (val === 0 && ['nm', 'cm⁻¹', 'ps', 'fs'].includes(to)) return NaN;
-                        if (to === 'eV') return val / 1000;
-                        if (to === 'nm') return 1239.84193 / (val / 1000);
-                        if (to === 'cm⁻¹') return (val / 1000) * 8065.54429;
-                        if (to === 'GHz') return (val / 1000) / 4.135667696e-6;
-                        if (to === 'ps') return 4.135667696e-3 / (val / 1000);
-                        if (to === 'fs') return 4.135667696 / (val / 1000);
-                        if (to === 'J') return (val / 1000) * 1.602176634e-19;
-                        if (to === 'cal') return (val / 1000) * 3.826733e-20;
-                        if (to === 'kWh') return (val / 1000) * 4.467037e-26;
-                        if (to === 'THz') return (val / 1000) / 0.004135667696;
-                        if (to === 'T') return (val / 1000) / 8.617333262e-5;
-                        return val;
-                    },
-                    nm: (val, to) => {
-                        if (val === 0 && ['eV', 'meV', 'cm⁻¹', 'GHz', 'ps', 'fs', 'J', 'cal', 'kWh'].includes(to)) return NaN;
-                        if (to === 'eV') return 1239.84193 / val;
-                        if (to === 'meV') return (1239.84193 / val) * 1000;
-                        if (to === 'cm⁻¹') return 1e7 / val;
-                        if (to === 'GHz') return (1239.84193 / val) / 4.135667696e-6;
-                        if (to === 'ps') return 4.135667696e-3 / (1239.84193 / val);
-                        if (to === 'fs') return 4.135667696 / (1239.84193 / val);
-                        if (to === 'J') return (1239.84193 / val) * 1.602176634e-19;
-                        if (to === 'cal') return (1239.84193 / val) * 3.826733e-20;
-                        if (to === 'kWh') return (1239.84193 / val) * 4.467037e-26;
-                        if (to === 'THz') return (1239.84193 / val) / 0.004135667696;
-                        if (to === 'T') return (1239.84193 / val) / 8.617333262e-5;
-                        return val;
-                    },
-                    'cm⁻¹': (val, to) => {
-                        if (val === 0 && ['eV', 'meV', 'nm', 'GHz', 'ps', 'fs', 'J', 'cal', 'kWh'].includes(to)) return NaN;
-                        if (to === 'eV') return val / 8065.54429;
-                        if (to === 'meV') return (val / 8065.54429) * 1000;
-                        if (to === 'nm') return 1e7 / val;
-                        if (to === 'GHz') return (val / 8065.54429) / 4.135667696e-6;
-                        if (to === 'ps') return 4.135667696e-3 / (val / 8065.54429);
-                        if (to === 'fs') return 4.135667696 / (val / 8065.54429);
-                        if (to === 'J') return (val / 8065.54429) * 1.602176634e-19;
-                        if (to === 'cal') return (val / 8065.54429) * 3.826733e-20;
-                        if (to === 'kWh') return (val / 8065.54429) * 4.467037e-26;
-                        if (to === 'THz') return (val / 8065.54429) / 0.004135667696;
-                        if (to === 'T') return (val / 8065.54429) / 8.617333262e-5;
-                        return val;
-                    },
-                    GHz: (val, to) => {
-                        if (val === 0 && ['eV', 'meV', 'nm', 'cm⁻¹', 'ps', 'fs', 'J', 'cal', 'kWh'].includes(to)) return NaN;
-                        if (to === 'eV') return val * 4.135667696e-6;
-                        if (to === 'meV') return (val * 4.135667696e-6) * 1000;
-                        if (to === 'nm') return 1239.84193 / (val * 4.135667696e-6);
-                        if (to === 'cm⁻¹') return (val * 4.135667696e-6) * 8065.54429;
-                        if (to === 'ps') return 4.135667696e-3 / (val * 4.135667696e-6);
-                        if (to === 'fs') return 4.135667696 / (val * 4.135667696e-6);
-                        if (to === 'J') return (val * 4.135667696e-6) * 1.602176634e-19;
-                        if (to === 'cal') return (val * 4.135667696e-6) * 3.826733e-20;
-                        if (to === 'kWh') return (val * 4.135667696e-6) * 4.467037e-26;
-                        if (to === 'THz') return (val * 4.135667696e-6) / 0.004135667696;
-                        if (to === 'T') return (val * 4.135667696e-6) / 8.617333262e-5;
-                        return val;
-                    },
-                    ps: (val, to) => {
-                        if (val === 0 && ['eV', 'meV', 'nm', 'cm⁻¹', 'GHz', 'J', 'cal', 'kWh'].includes(to)) return NaN;
-                        if (to === 'eV') return 4.135667696e-3 / val;
-                        if (to === 'meV') return (4.135667696e-3 / val) * 1000;
-                        if (to === 'nm') return 1239.84193 / (4.135667696e-3 / val);
-                        if (to === 'cm⁻¹') return (4.135667696e-3 / val) * 8065.54429;
-                        if (to === 'GHz') return (4.135667696e-3 / val) / 4.135667696e-6;
-                        if (to === 'fs') return val * 1000;
-                        if (to === 'J') return (4.135667696e-3 / val) * 1.602176634e-19;
-                        if (to === 'cal') return (4.135667696e-3 / val) * 3.826733e-20;
-                        if (to === 'kWh') return (4.135667696e-3 / val) * 4.467037e-26;
-                        if (to === 'THz') return (4.135667696e-3 / val) / 0.004135667696;
-                        if (to === 'T') return (4.135667696e-3 / val) / 8.617333262e-5;
-                        return val;
-                    },
-                    fs: (val, to) => {
-                        if (val === 0 && ['eV', 'meV', 'nm', 'cm⁻¹', 'GHz', 'J', 'cal', 'kWh'].includes(to)) return NaN;
-                        if (to === 'eV') return 4.135667696 / val;
-                        if (to === 'meV') return (4.135667696 / val) * 1000;
-                        if (to === 'nm') return 1239.84193 / (4.135667696 / val);
-                        if (to === 'cm⁻¹') return (4.135667696 / val) * 8065.54429;
-                        if (to === 'GHz') return (4.135667696 / val) / 4.135667696e-6;
-                        if (to === 'ps') return val / 1000;
-                        if (to === 'J') return (4.135667696 / val) * 1.602176634e-19;
-                        if (to === 'cal') return (4.135667696 / val) * 3.826733e-20;
-                        if (to === 'kWh') return (4.135667696 / val) * 4.467037e-26;
-                        if (to === 'THz') return (4.135667696 / val) / 0.004135667696;
-                        if (to === 'T') return (4.135667696 / val) / 8.617333262e-5;
-                        return val;
-                    },
-                    J: (val, to) => {
-                        if (val === 0 && ['nm', 'cm⁻¹', 'ps', 'fs'].includes(to)) return NaN;
-                        if (to === 'eV') return val / 1.602176634e-19;
-                        if (to === 'meV') return (val / 1.602176634e-19) * 1000;
-                        if (to === 'nm') return 1239.84193 / (val / 1.602176634e-19);
-                        if (to === 'cm⁻¹') return (val / 1.602176634e-19) * 8065.54429;
-                        if (to === 'GHz') return (val / 1.602176634e-19) / 4.135667696e-6;
-                        if (to === 'ps') return 4.135667696e-3 / (val / 1.602176634e-19);
-                        if (to === 'fs') return 4.135667696 / (val / 1.602176634e-19);
-                        if (to === 'cal') return val / 4.184;
-                        if (to === 'kWh') return val / 3.6e6;
-                        return val;
-                    },
-                    cal: (val, to) => {
-                        if (val === 0 && ['nm', 'cm⁻¹', 'ps', 'fs'].includes(to)) return NaN;
-                        if (to === ' consideredeV') return val / 3.826733e-20;
-                        if (to === 'meV') return (val / 3.826733e-20) * 1000;
-                        if (to === 'nm') return 1239.84193 / (val / 3.826733e-20);
-                        if (to === 'cm⁻¹') return (val / 3.826733e-20) * 8065.54429;
-                        if (to === 'GHz') return (val / 3.826733e-20) / 4.135667696e-6;
-                        if (to === 'ps') return 4.135667696e-3 / (val / 3.826733e-20);
-                        if (to === 'fs') return 4.135667696 / (val / 3.826733e-20);
-                        if (to === 'J') return val * 4.184;
-                        if (to === 'kWh') return (val * 4.184) / 3.6e6;
-                        return val;
-                    },
-                    kWh: (val, to) => {
-                        if (val === 0 && ['nm', 'cm⁻¹', 'ps', 'fs'].includes(to)) return NaN;
-                        if (to === 'eV') return val / 4.467037e-26;
-                        if (to === 'meV') return (val / 4.467037e-26) * 1000;
-                        if (to === 'nm') return 1239.84193 / (val / 4.467037e-26);
-                        if (to === 'cm⁻¹') return (val / 4.467037e-26) * 8065.54429;
-                        if (to === 'GHz') return (val / 4.467037e-26) / 4.135667696e-6;
-                        if (to === 'ps') return 4.135667696e-3 / (val / 4.467037e-26);
-                        if (to === 'fs') return 4.135667696 / (val / 4.467037e-26);
-                        if (to === 'J') return val * 3.6e6;
-                        if (to === 'cal') return (val * 3.6e6) / 4.184;
-                        return val;
-                    },
-                    THz: (val, to) => {
-                        // 1 THz = 1e12 Hz
-                        // E (eV) = h * f / e, h = 6.62607015e-34 J·s, e = 1.602176634e-19 C
-                        // 1 THz = 4.135667696 meV = 0.004135667696 eV
-                        if (val === 0 && ['eV', 'meV', 'nm', 'cm⁻¹', 'GHz', 'ps', 'fs', 'J', 'cal', 'kWh', 'T'].includes(to)) return NaN;
-                        if (to === 'eV') return val * 0.004135667696;
-                        if (to === 'meV') return val * 4.135667696;
-                        if (to === 'GHz') return val * 1000;
-                        if (to === 'nm') return 299792458 / (val * 1e12) * 1e9; // λ = c/f, nm
-                        if (to === 'cm⁻¹') return val * 33.35641;
-                        if (to === 'ps') return 1 / (val * 1e3);
-                        if (to === 'fs') return 1 / (val * 1e6);
-                        if (to === 'J') return val * 6.62607015e-22;
-                        if (to === 'cal') return val * 1.584588e-22;
-                        if (to === 'kWh') return val * 1.840575e-25;
-                        if (to === 'T') return val * 47.99243; // 1 THz = 47.99243 K (k_B)
-                        return val;
-                    },
-                    T: (val, to) => {
-                        // 1 K = k_B = 8.617333262e-5 eV
-                        if (val === 0 && ['eV', 'meV', 'nm', 'cm⁻¹', 'GHz', 'THz', 'ps', 'fs', 'J', 'cal', 'kWh'].includes(to)) return NaN;
-                        if (to === 'eV') return val * 8.617333262e-5;
-                        if (to === 'meV') return val * 0.08617333262;
-                        if (to === 'GHz') return val * 2.0836612;
-                        if (to === 'THz') return val / 47.99243;
-                        if (to === 'nm') return 1239.84193 / (val * 8.617333262e-5);
-                        if (to === 'cm⁻¹') return val * 0.6950348;
-                        if (to === 'ps') return 4.135667696e-3 / (val * 8.617333262e-5);
-                        if (to === 'fs') return 4.135667696 / (val * 8.617333262e-5);
-                        if (to === 'J') return val * 1.380649e-23;
-                        if (to === 'cal') return val * 3.297623e-24;
-                        if (to === 'kWh') return val * 3.834025e-28;
-                        return val;
-                    },
-                }
+          energy: {
+            units: ['nm', 'eV', 'meV', 'cm⁻¹', 'temp', 'kHz', 'MHz', 'GHz', 'THz', 'ps', 'ns', 'us', 'fs', 'J', 'cal'],
+            factors: {
+              eV: (val, to) => convertEnergy(val, 'eV', to),
+              meV: (val, to) => convertEnergy(val, 'meV', to),
+              nm: (val, to) => convertEnergy(val, 'nm', to),
+              'cm⁻¹': (val, to) => convertEnergy(val, 'cm⁻¹', to),
+              GHz: (val, to) => convertEnergy(val, 'GHz', to),
+              THz: (val, to) => convertEnergy(val, 'THz', to),
+              ps: (val, to) => convertEnergy(val, 'ps', to),
+              ns: (val, to) => convertEnergy(val, 'ns', to),
+              us: (val, to) => convertEnergy(val, 'us', to),
+              fs: (val, to) => convertEnergy(val, 'fs', to),
+              J: (val, to) => convertEnergy(val, 'J', to),
+              cal: (val, to) => convertEnergy(val, 'cal', to),
+              kWh: (val, to) => convertEnergy(val, 'kWh', to),
+              temp: (val, to) => convertEnergy(val, 'temp', to),
+              kHz: (val, to) => convertEnergy(val, 'kHz', to),
+              MHz: (val, to) => convertEnergy(val, 'MHz', to),
             },
-            pressure: {
-                units: ['Pa', 'Bar', 'atm', 'Torr', 'psi', 'mbar'],
-                factors: {
-                    Pa: 1,
-                    Bar: 0.00001,
-                    atm: 0.000009869233,
-                    Torr: 0.007500617,
-                    psi: 0.0001450377,
-                    mbar: 0.01
-                }
-            },
-            temperature: {
-                units: ['Celsius', 'Fahrenheit', 'Kelvin'],
-                factors: {
-                    Celsius: (val, to) => {
-                        if (to === 'Fahrenheit') return (val * 9/5) + 32;
-                        if (to === 'Kelvin') return val + 273.15;
-                        return val;
-                    },
-                    Fahrenheit: (val, to) => {
-                        if (to === 'Celsius') return (val - 32) * 5/9;
-                        if (to === 'Kelvin') return ((val - 32) * 5/9) + 273.15;
-                        return val;
-                    },
-                    Kelvin: (val, to) => {
-                        if (to === 'Celsius') return val - 273.15;
-                        if (to === 'Fahrenheit') return ((val - 273.15) * 9/5) + 32;
-                        return val;
-                    }
-                }
-            },
-            volume: {
-                units: ['Liter', 'Milliliter', 'Cubic Meter', 'Gallon', 'Quart', 'Pint'],
-                factors: {
-                    Liter: 1,
-                    Milliliter: 1000,
-                    'Cubic Meter': 0.001,
-                    Gallon: 0.264172,
-                    Quart: 1.05669,
-                    Pint: 2.11338
-                }
-            },
-            mass: {
-                units: ['Kilogram', 'Gram', 'Milligram', 'Pound', 'Ounce'],
-                factors: {
-                    Kilogram: 1,
-                    Gram: 1000,
-                    Milligram: 1000000,
-                    Pound: 2.20462,
-                    Ounce: 35.274
-                }
-            },
-            area: {
-                units: ['Square Meter', 'Square Kilometer', 'Square Mile', 'Square Yard', 'Square Foot', 'Acre'],
-                factors: {
-                    'Square Meter': 1,
-                    'Square Kilometer': 0.000001,
-                    'Square Mile': 0.000000386102,
-                    'Square Yard': 1.19599,
-                    'Square Foot': 10.7639,
-                    'Acre': 0.000247105
-                }
-            },
-            length: {
-                units: ['Meter', 'Kilometer', 'Centimeter', 'Millimeter', 'Mile', 'Yard', 'Foot', 'Inch', 'Angstrom'],
-                factors: {
-                    Meter: 1,
-                    Kilometer: 0.001,
-                    Centimeter: 100,
-                    Millimeter: 1000,
-                    Mile: 0.000621371,
-                    Yard: 1.09361,
-                    Foot: 3.28084,
-                    Inch: 39.3701,
-                    Angstrom: 1e10
-                }
-            },
-            speed: {
-                units: ['m/s', 'km/h', 'mph', 'ft/s', 'knot'],
-                factors: {
-                    'm/s': 1,
-                    'km/h': 3.6,
-                    'mph': 2.23694,
-                    'ft/s': 3.28084,
-                    'knot': 1.94384
-                }
-            }
-        };
+            seed: 'nm',
+            seedValue: 200
+          },
+          pressure: {
+    units: ['Pa', 'Bar', 'atm', 'Torr', 'psi', 'mbar'],
+    factors: { Pa: 1, Bar: 0.00001, atm: 0.000009869233, Torr: 0.007500617, psi: 0.0001450377, mbar: 0.01 },
+    seed: 'Pa', seedValue: 101325
+  },
+  temperature: {
+    units: ['Celsius', 'Fahrenheit', 'Kelvin'],
+    factors: {
+      Celsius: (val, to) => to === 'Fahrenheit' ? (val * 9/5) + 32 : to === 'Kelvin' ? val + 273.15 : val,
+      Fahrenheit: (val, to) => to === 'Celsius' ? (val - 32) * 5/9 : to === 'Kelvin' ? ((val - 32) * 5/9) + 273.15 : val,
+      Kelvin: (val, to) => to === 'Celsius' ? val - 273.15 : to === 'Fahrenheit' ? ((val - 273.15) * 9/5) + 32 : val,
+    },
+    seed: 'Celsius', seedValue: 20
+  },
+  volume: {
+    units: ['Liter', 'Milliliter', 'Cubic Meter', 'Gallon', 'Quart', 'Pint'],
+    factors: { Liter: 1, Milliliter: 1000, 'Cubic Meter': 0.001, Gallon: 0.264172, Quart: 1.05669, Pint: 2.11338 },
+    seed: 'Liter', seedValue: 1
+  },
+  mass: {
+    units: ['Kilogram', 'Gram', 'Milligram', 'Pound', 'Ounce'],
+    factors: { Kilogram: 1, Gram: 1000, Milligram: 1000000, Pound: 2.20462, Ounce: 35.274 },
+    seed: 'Kilogram', seedValue: 1
+  },
+  area: {
+    units: ['Square Meter', 'Square Kilometer', 'Square Mile', 'Square Yard', 'Square Foot', 'Acre'],
+    factors: { 'Square Meter': 1, 'Square Kilometer': 0.000001, 'Square Mile': 0.000000386102, 'Square Yard': 1.19599, 'Square Foot': 10.7639, 'Acre': 0.000247105 },
+    seed: 'Square Meter', seedValue: 1
+  },
+  length: {
+    units: ['Meter', 'Kilometer', 'Centimeter', 'Millimeter', 'Mile', 'Yard', 'Foot', 'Inch', 'Angstrom'],
+    factors: { Meter: 1, Kilometer: 0.001, Centimeter: 100, Millimeter: 1000, Mile: 0.000621371, Yard: 1.09361, Foot: 3.28084, Inch: 39.3701, Angstrom: 1e10 },
+    seed: 'Meter', seedValue: 1
+  },
+  speed: {
+    units: ['m/s', 'km/h', 'mph', 'ft/s', 'knot'],
+    factors: { 'm/s': 1, 'km/h': 3.6, mph: 2.23694, 'ft/s': 3.28084, knot: 1.94384 },
+    seed: 'm/s', seedValue: 1
+  }
+};
 
-        // Cache DOM elements
-        const elements = {
-            category: document.getElementById('category'),
-            inputValue: document.getElementById('inputValue'),
-            fromUnit: document.getElementById('fromUnit'),
-            toUnit: document.getElementById('toUnit'),
-            result: document.getElementById('result')
-        };
+const FUNCTION_BASED = ['energy', 'temperature'];
 
-        // Cache for unit options
-        const unitOptionsCache = {};
+let currentCategory = 'energy';
 
-        // Define default units for each category
-        const defaultUnits = {
-            energy: ['nm', 'eV'],
-            pressure: ['Pa', 'Bar'],
-            temperature: ['Celsius', 'Fahrenheit'],
-            volume: ['Liter', 'Gallon'],
-            mass: ['Kilogram', 'Pound'],
-            area: ['Square Meter', 'Square Foot'],
-            length: ['Meter', 'Foot'],
-            speed: ['m/s', 'km/h']
-        };
+const categoriesEl = document.getElementById('categories');
+const gridEl = document.getElementById('grid');
+const unitCountEl = document.getElementById('unitCount');
 
-        // Initialize unit options cache
-        function initializeUnits() {
-            Object.keys(conversionFactors).forEach(category => {
-                const units = conversionFactors[category].units;
-                unitOptionsCache[category] = units
-                    .map(unit => `<option value="${unit}">${unit}</option>`).join('');
-            });
-            updateUnits();
-        }
+function convertValue(category, fromUnit, value, toUnit) {
+  if (fromUnit === toUnit) return value;
+  const cat = conversionFactors[category];
+  if (FUNCTION_BASED.includes(category)) {
+    return cat.factors[fromUnit](value, toUnit);
+  }
+  const fromFactor = cat.factors[fromUnit];
+  const toFactor = cat.factors[toUnit];
+  return (value / fromFactor) * toFactor;
+}
 
-        function updateUnits() {
-            const category = elements.category.value;
-            let fromUnitValue = elements.fromUnit.value;
-            let toUnitValue = elements.toUnit.value;
+function formatNumber(n) {
+  if (!isFinite(n)) return null;
+  const abs = Math.abs(n);
+  if (abs !== 0 && (abs > 1e6 || abs < 1e-6)) {
+    return n.toExponential(4).replace(/\.?0+e/, 'e');
+  }
+  return n.toFixed(6).replace(/\.?0+$/, '');
+}
 
-            // Set default units if none selected or invalid
-            if (!conversionFactors[category].units.includes(fromUnitValue)) {
-                fromUnitValue = defaultUnits[category][0];
-            }
-            if (!conversionFactors[category].units.includes(toUnitValue)) {
-                toUnitValue = defaultUnits[category][1];
-            }
+function buildCategoryTabs() {
+  categoriesEl.innerHTML = '';
+  Object.keys(conversionFactors).forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (cat === currentCategory ? ' active' : '');
+    btn.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+    btn.addEventListener('click', () => {
+      if (currentCategory === cat) return;
+      currentCategory = cat;
+      buildCategoryTabs();
+      buildGrid();
+    });
+    categoriesEl.appendChild(btn);
+  });
+}
 
-            // Generate options with selected values
-            const options = unitOptionsCache[category].replace(
-                `<option value="${fromUnitValue}"`,
-                `<option value="${fromUnitValue}" selected`
-            );
-            const toOptions = unitOptionsCache[category].replace(
-                `<option value="${toUnitValue}"`,
-                `<option value="${toUnitValue}" selected`
-            );
+function buildGrid() {
+  const cat = conversionFactors[currentCategory];
+  gridEl.innerHTML = '';
+  unitCountEl.textContent = cat.units.length + ' units';
 
-            // Update dropdowns
-            elements.fromUnit.innerHTML = options;
-            elements.toUnit.innerHTML = toOptions;
+  cat.units.forEach(unit => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.unit = unit;
 
-            convert();
-        }
+    const label = document.createElement('span');
+    label.className = 'unit-label';
+    label.textContent = unit;
 
-        function convert() {
-            // Reset error states
-            elements.result.classList.remove('error');
-            elements.inputValue.classList.remove('error');
+    const input = document.createElement('input');
+    input.className = 'unit-input';
+    input.type = 'text';
+    input.inputMode = 'decimal';
+    input.autocomplete = 'off';
+    input.spellcheck = false;
 
-            const category = elements.category.value;
-            const inputValue = elements.inputValue.value.trim();
-            const fromUnit = elements.fromUnit.value;
-            const toUnit = elements.toUnit.value;
+    input.addEventListener('focus', () => card.classList.add('focused'));
+    input.addEventListener('blur', () => card.classList.remove('focused'));
+    input.addEventListener('input', () => onUnitInput(unit));
 
-            // Validate numerical input
-            const numericalRegex = /^[+-]?(?:\d*\.?\d+)(?:[eE][+-]?\d+)?$/;
-            if (!inputValue || !numericalRegex.test(inputValue)) {
-                elements.result.value = 'Invalid numerical input';
-                elements.inputValue.classList.add('error');
-                elements.result.classList.add('error');
-                return;
-            }
+    card.appendChild(label);
+    card.appendChild(input);
+    gridEl.appendChild(card);
+  });
 
-            const parsedValue = parseFloat(inputValue);
-            if (isNaN(parsedValue)) {
-                elements.result.value = 'Invalid numerical input';
-                elements.inputValue.classList.add('error');
-                elements.result.classList.add('error');
-                return;
-            }
+  // Seed initial values
+  const seedInput = gridEl.querySelector(`[data-unit="${cssEscape(cat.seed)}"] input`);
+  if (seedInput) {
+    seedInput.value = cat.seedValue;
+    onUnitInput(cat.seed);
+  }
+}
 
-            try {
-                let result;
-                if (['temperature', 'energy'].includes(category)) {
-                    const converter = conversionFactors[category].factors[fromUnit];
-                    result = converter(parsedValue, toUnit);
-                } else {
-                    const fromFactor = conversionFactors[category].factors[fromUnit];
-                    const toFactor = conversionFactors[category].factors[toUnit];
-                    result = parsedValue / fromFactor * toFactor;
-                }
+function cssEscape(str) {
+  return (window.CSS && CSS.escape) ? CSS.escape(str) : str.replace(/([^\w-])/g, '\\$1');
+}
 
-                if (isNaN(result) || !isFinite(result)) {
-                    elements.result.value = parsedValue === 0 ? 'Zero is invalid for this conversion' : 'Invalid input';
-                    elements.result.classList.add('error');
-                } else {
-                    // Use scientific notation for very large/small numbers
-                    elements.result.value = Math.abs(result) > 1e6 || (Math.abs(result) < 1e-6 && result !== 0)
-                        ? result.toExponential(4).replace(/\.?0+e/, 'e')
-                        : result.toFixed(6).replace(/\.?0+$/, '');
-                }
-            } catch (error) {
-                elements.result.value = 'Error';
-                elements.result.classList.add('error');
-                console.error('Conversion failed:', error); // Added for debugging
-            }
-        }
+function onUnitInput(sourceUnit) {
+  const cat = conversionFactors[currentCategory];
+  const sourceCard = gridEl.querySelector(`[data-unit="${cssEscape(sourceUnit)}"]`);
+  const sourceInput = sourceCard.querySelector('input');
+  const raw = sourceInput.value.trim();
 
-        // Debounce function
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
+  const numericalRegex = /^[+-]?(?:\d*\.?\d+)(?:[eE][+-]?\d+)?$/;
+  const isValid = raw !== '' && numericalRegex.test(raw) && isFinite(parseFloat(raw));
 
-        // Attach event listeners
-        elements.inputValue.addEventListener('input', debounce(convert, 300));
-        elements.category.addEventListener('change', updateUnits);
-        elements.fromUnit.addEventListener('change', convert);
-        elements.toUnit.addEventListener('change', convert);
+  sourceCard.classList.toggle('invalid', raw !== '' && !isValid);
 
-        // Initialize units and perform initial conversion on page load
-        initializeUnits();
-    </script>
-    <!-- Removed Cloudflare script for local debugging -->
+  if (!isValid) {
+    // clear all other fields to a dash state if the source is unusable
+    cat.units.forEach(unit => {
+      if (unit === sourceUnit) return;
+      const otherCard = gridEl.querySelector(`[data-unit="${cssEscape(unit)}"]`);
+      const otherInput = otherCard.querySelector('input');
+      otherInput.value = '';
+      otherInput.classList.remove('dash');
+      otherCard.classList.remove('invalid');
+    });
+    return;
+  }
+
+  const value = parseFloat(raw);
+
+  cat.units.forEach(unit => {
+    if (unit === sourceUnit) return;
+    const otherCard = gridEl.querySelector(`[data-unit="${cssEscape(unit)}"]`);
+    const otherInput = otherCard.querySelector('input');
+    const result = convertValue(currentCategory, sourceUnit, value, unit);
+    const formatted = formatNumber(result);
+
+    if (formatted === null) {
+      otherInput.value = '—';
+      otherInput.classList.add('dash');
+      otherCard.classList.add('invalid');
+    } else {
+      otherInput.value = formatted;
+      otherInput.classList.remove('dash');
+      otherCard.classList.remove('invalid');
+    }
+  });
+}
+
+buildCategoryTabs();
+buildGrid();
+</script>
 </body>
 </html>
